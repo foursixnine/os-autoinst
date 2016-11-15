@@ -391,19 +391,28 @@ sub enqueue_screenshot {
 
     # link identical files to save space
     my $sim = 0;
+    bmwqemu::diag "SIMILARITY";
     $sim = $lastscreenshot->similarity($image) if $lastscreenshot;
+    bmwqemu::diag "SIMILARITY";
 
     my $mt1 = gettimeofday;
 
     # 54 is based on t/data/user-settings-*
     if ($sim <= 54) {
         # don't write a new screenshot by default not to waste cycles
+        bmwqemu::diag "WRITE_IMAGE";
+
         $self->write_img($image, $filename) || die "write $filename";
+        bmwqemu::diag "LAST_IMAGE";
         $self->last_image($image);
+        bmwqemu::diag "LAST_SCREENSHOT";
         $self->_last_screenshot_name($filename);
+        bmwqemu::diag "LAST";
         no autodie qw(unlink);
+        bmwqemu::diag "ENQEUE";
         unlink($lastlink);
         symlink(basename($self->_last_screenshot_name), $lastlink);
+        bmwqemu::diag "ENQEUE";
     }
 
     if ($sim > 50) {    # we ignore smaller differences
