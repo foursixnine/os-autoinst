@@ -933,7 +933,8 @@ sub read_qemupipe {
     for my $line (split(/\n/, $buffer)) {
         bmwqemu::diag "QEMU: $line";
         die "QEMU: Shutting down the job." if $line =~ m/key event queue full/;
-        die "QEMU: Shutting down the job. It is very likely the vgabios firmware is missing" if $line =~ m/failed to find romfile/;
+        die "QEMU: vgabios firmware is missing. Shutting down the job" if $line =~ m/failed to find romfile/;
+        die "QEMU: Parameters in QEMU are wrong. Shutting down the job" if $line =~ m/already registered, abort/;
     }
     return $bytes;
 }
