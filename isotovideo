@@ -173,7 +173,7 @@ sub sync_needles_to_cache {
 
     my $needles_source = $bmwqemu::vars{PRODUCTDIR} . "/needles";
     my $shared_cache = File::Spec->catdir($bmwqemu::vars{CACHEDIRECTORY}, $bmwqemu::vars{OPENQA_HOSTNAME}, $bmwqemu::vars{DISTRI});
-    File::Path::make_path($shared_cache);
+    File::Path::make_path($shared_cache); # CauseOfDeath mkdir /var/lib/openqa/cache/deimos.suse.de: Permission denied at /usr/bin/isotovideo line 176.
 
     my $start = time;
     #Do an flock to ensure only one worker is trying to synchronize at a time.
