@@ -134,7 +134,7 @@ sub init {
                 last;
             }
         }
-        die "can't determine test directory for $vars{DISTRI}\n" unless $vars{CASEDIR};
+        die "can't determine test directory for $vars{DISTRI}, was looking for $scriptdir/distri/$vars{DISTRI}\n" unless $vars{CASEDIR};
     }
 
     # defaults
