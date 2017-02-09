@@ -296,6 +296,12 @@ sub write_crash_file {
     close $fh;
 }
 
+sub cause_of_death {
+    my ($reason) = @_;
+    write_crash_file;
+    notimplemented;
+}
+
 # new api end
 
 # virtual methods
