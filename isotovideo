@@ -53,6 +53,8 @@ use Carp 'cluck';
 use Time::HiRes qw(gettimeofday tv_interval sleep time);
 use File::Spec;
 use File::Path;
+use File::Basename;
+use File::Spec;
 
 # avoid paranoia
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
@@ -185,6 +187,42 @@ sub sync_needles_to_cache {
     return $shared_cache;
 }
 
+sub sync_asset_to_cache {
+
+    no autodie 'system';
+
+    my ($asset_key) = @_;
+    my $asset_source = $bmwqemu::vars{$asset_key} or die "Asset $asset_key not found";
+    my $asset_name = basename($asset_source);
+    my $shared_cache = File::Spec->catdir($bmwqemu::vars{CACHEDIRECTORY}, $bmwqemu::vars{OPENQA_HOSTNAME}, $bmwqemu::vars{DISTRI}, "assets");
+    File::Path::make_path($shared_cache);
+
+    my $start = time;
+    #Do an flock to ensure only one worker is trying to synchronize at a time.
+    my $cmd = sprintf("flock -E 999 %s/%s.lock rsync -aP --delete %s %s", $shared_cache, $asset_name, $asset_source, $shared_cache);
+    my $res = system($cmd);
+
+    die "Failed to sync assets: '$@' " if $res;
+    bmwqemu::diag(sprintf("RSYNC: Synchronization of $asset_name took %.2f seconds", time - $start));
+
+    # Since assets are needed before qemu is started, variables need to be altered
+    # before we can continue working
+
+    $bmwqemu::vars{$asset_key} = File::Spec->catpath('', $shared_cache, $asset_name);
+    return $bmwqemu::vars{$asset_key};
+}
+
+sub cache_assets {
+
+    bmwqemu::diag "Trying to cache assets";
+    #cache ISO and HDD
+    foreach my $this_asset (sort grep { /^(ISO|HDD)[_]*\d?$/ } keys %bmwqemu::vars) {
+        bmwqemu::diag("Found $this_asset, caching ". $bmwqemu::vars{$this_asset});
+        bmwqemu::diag("Cached to: ". sync_asset_to_cache ($this_asset));
+    }
+
+}
+
 our $shared_cache;
 
 sub init_backend {
@@ -193,7 +231,6 @@ sub init_backend {
 
     # make sure the needles are initialized
     needle::init($bmwqemu::vars{PRODUCTDIR} . "/needles", $shared_cache ? $shared_cache . "/needles" : undef);
-
     $bmwqemu::backend = backend::driver->new($bmwqemu::vars{BACKEND});
     return $bmwqemu::backend;
 }
@@ -246,6 +283,9 @@ $bmwqemu::vars{TEST_GIT_HASH} = $test_git_hash;
 # opencv adds
 # CACHEDIRECTORY must be defined in workers.ini either global or per worker configuration
 $shared_cache = sync_needles_to_cache if $bmwqemu::vars{CACHEDIRECTORY};
+
+# CACHEASSETS must be defined in workers.ini either global or per worker configuration
+cache_assets if $bmwqemu::vars{CACHEASSETS} && $shared_cache;#? $shared_cache : $original_needles_dir
 
 # add lib of the test distributions - but only for main.pm not to pollute
 # further dependencies (the tests get it through autotest)
