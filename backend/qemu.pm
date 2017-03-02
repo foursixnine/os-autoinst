@@ -206,6 +206,7 @@ sub save_snapshot {
     my $vmname = $args->{name};
     my $rsp    = $self->_send_hmp("savevm $vmname");
     diag "SAVED $vmname $rsp";
+    cod $rsp  if ($rsp eq "No space left on device");
     die "Could not save snapshot \'$vmname\': $rsp" unless ($rsp eq "savevm $vmname");
     return;
 }
