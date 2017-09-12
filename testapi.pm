@@ -52,8 +52,7 @@ our @EXPORT = qw($realname $username $password $serialdev %cmd %vars
 
   select_console console reset_consoles
 
-  upload_asset upload_image data_url assert_shutdown parse_junit_log
-  upload_logs
+  upload_asset data_url assert_shutdown parse_junit_log upload_logs
 
   wait_idle wait_screen_change assert_screen_change wait_still_screen wait_serial
   record_soft_failure record_info
@@ -218,7 +217,8 @@ sub _handle_found_needle {
     my $frame = $rsp->{frame};
     $autotest::current_test->record_screenmatch($img, $foundneedle, $tags, $rsp->{candidates}, $frame);
     my $lastarea = $foundneedle->{area}->[-1];
-    bmwqemu::fctres(sprintf("found %s, similarity %.2f @ %d/%d", $foundneedle->{needle}->{name}, $lastarea->{similarity}, $lastarea->{x}, $lastarea->{y}));
+    bmwqemu::fctres(
+        sprintf("found %s, similarity %.2f @ %d/%d", $foundneedle->{needle}->{name}, $lastarea->{similarity}, $lastarea->{x} // 0, $lastarea->{y} // 0));
     $last_matched_needle = $foundneedle;
     return $foundneedle;
 }
@@ -541,7 +541,7 @@ Default timeout is 30s, default stilltime is 7s.
 sub wait_still_screen {
     my $stilltime        = shift || 7;
     my $timeout          = shift || 30;
-    my $similarity_level = shift || (get_var('HW') ? 44 : 47);
+    my $similarity_level = shift || 47;
 
     bmwqemu::log_call(stilltime => $stilltime, timeout => $timeout, simlvl => $similarity_level);
 
@@ -1027,7 +1027,7 @@ Special characters naming:
 sub send_key {
     my ($key, $do_wait) = @_;
     $do_wait //= 0;
-    bmwqemu::log_call(key => $key);
+    bmwqemu::log_call(key => $key, do_wait => $do_wait);
     query_isotovideo('backend_send_key', {key => $key});
     wait_idle() if $do_wait;
 }
@@ -1314,7 +1314,7 @@ C<$distri->console_selected> is called with C<@args>.
 
 sub select_console {
     my ($testapi_console, @args) = @_;
-    bmwqemu::log_call(testapi_console => $testapi_console);
+    bmwqemu::log_call(testapi_console => $testapi_console, @args);
     if (!exists $testapi_console_proxies{$testapi_console}) {
         $testapi_console_proxies{$testapi_console} = backend::console_proxy->new($testapi_console);
     }
@@ -1700,7 +1700,7 @@ sub wait_idle {
 
     bmwqemu::log_call(timeout => $timeout);
 
-    my $rsp = query_isotovideo('backend_wait_idle', timeout => $timeout);
+    my $rsp = query_isotovideo('backend_wait_idle', {timeout => $timeout});
     bmwqemu::fctres("slept $timeout seconds");
     return;
 }
@@ -1786,14 +1786,14 @@ sub data_url($) {
 
 =for stopwords GiB failok OpenQA WebUI
 
-  upload_logs($file [, failok => 0, timeout => 90 ]);
+  upload_logs($file [, failok => 0, timeout => 90, log_name => "custom_name.log" ]);
 
 Upload C<$file> to OpenQA WebUI as a log file and
 return the uploaded file name. If failok is not set, a failed upload or
 timeout will cause the test to die. Failed uploads happen if the file does not
 exist or is over 20 GiB in size, so failok is useful when you just want
 to upload the file if it exists but not mind if it doesn't. Default
-timeout is 90s.
+timeout is 90s. C<log_name> parameter allow to control resulted job's attachment name.
 
 =cut
 
@@ -1803,9 +1803,9 @@ sub upload_logs {
     my $failok  = $args{failok} || 0;
     my $timeout = $args{timeout} || 90;
 
-    bmwqemu::log_call(file => $file);
+    bmwqemu::log_call(file => $file, %args);
     my $basename = basename($file);
-    my $upname   = ref($autotest::current_test) . '-' . $basename;
+    my $upname   = ($args{log_name} || ref($autotest::current_test)) . '-' . $basename;
     my $cmd      = "curl --form upload=\@$file --form upname=$upname ";
     $cmd .= autoinst_url("/uploadlog/$basename");
     if ($failok) {
@@ -1847,7 +1847,7 @@ C<$nocheck> parameter:
 sub upload_asset {
     my ($file, $public, $nocheck) = @_;
 
-    bmwqemu::log_call(file => $file);
+    bmwqemu::log_call(file => $file, public => $public, nocheck => $nocheck);
     my $cmd = "curl --form upload=\@$file ";
     $cmd .= "--form target=assets_public " if $public;
     my $basename = basename($file);
