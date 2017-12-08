@@ -246,7 +246,7 @@ sub save_memory_dump {
         diag "Migrating total bytes:     \t" . $rsp->{return}->{ram}->{total};
         diag "Migrating remaining bytes:   \t" . $rsp->{return}->{ram}->{remaining};
 
-        if ($execution_time > $args->{migrate_set_downtime}) {
+        if ($execution_time > $args->{migrate_set_downtime} + 2) {
             # migrate_cancel returns an empty hash, so there is no need to check.
             $rsp = $self->handle_qmp_command({execute => "migrate_cancel"});
             die "Memory dump failed, it has been running for more than". $args->{migrate_set_downtime};
