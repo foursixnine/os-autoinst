@@ -872,6 +872,7 @@ sub handle_qmp_command {
     my $line = JSON::to_json($cmd);
     my $wb = syswrite($self->{qmpsocket}, "$line\n");
     die "syswrite failed $!" unless ($wb == length($line) + 1);
+    bmwqemu::diag "COMMAND " . $line;
 
     my $hash;
     while (!$hash) {
