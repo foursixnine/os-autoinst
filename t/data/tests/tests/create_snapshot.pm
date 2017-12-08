@@ -18,7 +18,8 @@ use base 'basetest';
 use testapi;
 
 sub run {
-    save_memory_dump;
+    script_run("dd if=/dev/urandom of=/dev/shm/file bs=1000000000 count=1");
+    save_memory_dump(filename => 'mysnapshot');
 }
 
 1;
