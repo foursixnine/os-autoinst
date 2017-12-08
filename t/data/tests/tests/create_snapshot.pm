@@ -20,7 +20,6 @@ use testapi;
 sub run {
     script_run("dd if=/dev/urandom of=/dev/shm/file bs=1000000000 count=1");
     save_memory_dump(filename => 'mysnapshot', migrate_set_speed => 1024, migrate_set_downtime => 10);
-    save_memory_dump(filename => 'mysnapshot');
 }
 
 1;
