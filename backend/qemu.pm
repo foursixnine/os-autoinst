@@ -235,19 +235,27 @@ sub save_memory_dump {
     die(sprintf("Migration failed: desc: %s, class: %s, stopped", $rsp->{error}->{desc}, $rsp->{error}->{class})) if ($rsp->{error});
 
     do_stop_vm();
-
+    my $migration_starttime = gettimeofday;
+    my $execution_time      = gettimeofday;
     do {
 
         sleep 0.5;    #We want to wait a decent amount of time, a file of 1GB will be
                       # migrated in about 40secs with an ssd drive. and no heavy load.
+        $execution_time = gettimeofday - $migration_starttime;
         $rsp = $self->handle_qmp_command({execute => "query-migrate"});
-
         diag "Migrating total bytes:     \t" . $rsp->{return}->{ram}->{total};
         diag "Migrating remaining bytes:   \t" . $rsp->{return}->{ram}->{remaining};
+
+        if ($execution_time > $args->{migrate_set_downtime}) {
+            # migrate_cancel returns an empty hash, so there is no need to check.
+            $rsp = $self->handle_qmp_command({execute => "migrate_cancel"});
+            die "Memory dump failed, it has been running for more than". $args->{migrate_set_downtime};
+        }
 
     } until ($rsp->{return}->{status} eq "completed");
 
     diag "Migration completed.";
+
     cont_vm();
 
     return;
