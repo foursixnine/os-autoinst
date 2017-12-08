@@ -36,10 +36,10 @@ autotest::loadtest "tests/boot.pm";
 
 # openQA tests set this to 0 when reusing the os-autoinst tests
 unless (get_var('INTEGRATION_TESTS')) {
-    autotest::loadtest "tests/select_console_fail_test.pm";
-    autotest::loadtest "tests/assert_screen_fail_test.pm";
-    autotest::loadtest "tests/typing.pm";
-    autotest::loadtest "tests/reload_needles.pm";
+    #autotest::loadtest "tests/select_console_fail_test.pm";
+    #autotest::loadtest "tests/assert_screen_fail_test.pm";
+    #autotest::loadtest "tests/typing.pm";
+    #autotest::loadtest "tests/reload_needles.pm";
     autotest::loadtest "tests/create_snapshot.pm";
 }
 autotest::loadtest "tests/shutdown.pm";
