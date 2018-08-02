@@ -101,6 +101,7 @@ sub opencmd {
         while ((my $child = waitpid(-1, WNOHANG)) > 0) {
             diag "runcmd pid $pid returned $child";
             $status = $?;
+            print "got $? == $status";
         }
     };
 
@@ -114,8 +115,7 @@ sub opencmd {
 
     close($rdr) or die "couldn't close fh: $!";
     close($err) or die "couldn't close fh: $!";
-
-    my $exit_code = $status >> 8;
+    my $exit_code = (defined $status)? $status  >> 8 : 0;
     die "runcmd failed with exit code $exit_code" unless ($exit_code == 0);
     return $exit_code;
 }
