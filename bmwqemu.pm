@@ -216,7 +216,7 @@ sub fctinfo {
     my ($text, $fname) = @_;
 
     $fname //= (caller(1))[3];
-    $logger = Mojo::Log->new(level => 'debug', format => \&log_format_callback) unless $logger;
+    $logger = Mojo::Log->new(level => 'info', format => \&log_format_callback) unless $logger;
     $logger->info("::: $fname: $text");
     return;
 }
@@ -227,6 +227,15 @@ sub fctwarn {
     $fname //= (caller(1))[3];
     $logger = Mojo::Log->new(level => 'debug', format => \&log_format_callback) unless $logger;
     $logger->warn("!!! $fname: $text");
+    return;
+}
+
+sub error {
+    my ($text, $fname) = @_;
+
+    $fname //= (caller(1))[3];
+    $logger = Mojo::Log->new(level => 'error', format => \&log_format_callback) unless $logger;
+    $logger->error("!!! $fname: $text");
     return;
 }
 
