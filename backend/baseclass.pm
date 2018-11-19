@@ -242,7 +242,7 @@ sub run_capture_loop {
                     # Very high limits! On a working socket, the maximum hits per 10 seconds will be around 60.
                     # The maximum hits per 10 seconds saw on a half open socket was >100k
                     if (check_select_rate($buckets, $wait_time_limit, $hits_limit, fileno $fh)) {
-                        die "The console isn't responding correctly. Maybe half-open socket?";
+                        confess "The console isn't responding correctly. Maybe half-open socket?";
                     }
                 }
 
@@ -518,8 +518,7 @@ sub check_socket {
             }
         }
         else {
-            use Data::Dumper;
-            die "no command in " . Dumper($cmd);
+            confess "no command in " . Dumper($cmd);
         }
         return 1;
     }
