@@ -364,10 +364,11 @@ sub runtest {
             $died = 1;
         }
     }
-
+    bmwqemu::diag('Searching for serial failures');
     # Detect serial failures and override result if die
     eval { $self->search_for_expected_serial_failures(); };
     # Process serial dectection failure
+    bmwqemu::diag('Searching for serial failures__');
     if ($@) {
         bmwqemu::diag($@);
         $self->record_resultfile('Failed', $@, result => 'fail');
@@ -658,6 +659,8 @@ sub rollback_activated_consoles {
 sub search_for_expected_serial_failures {
     my ($self) = @_;
     if (defined $bmwqemu::vars{BACKEND} && $bmwqemu::vars{BACKEND} eq 'qemu') {
+        bmwqemu::diag('We are inside qemu, about to get into parse_serial_output_qemu');
+
         $self->parse_serial_output_qemu();
     }
 }
@@ -688,6 +691,7 @@ sub parse_serial_output_qemu {
             # Input parameters validation
             die "Wrong type defined for serial failure. Only 'soft' or 'hard' allowed. Got: $type" if $type !~ /^soft|hard|fatal$/;
             die "Message not defined for serial failure for the pattern: '$regexp', type: $type"   if !defined $message;
+            bmwqemu::diag("Looking for '$regexp' in '\n$line\n'");
 
             # If you want to match a simple string please be sure that you create it with quotemeta
             if (!exists $regexp_matched{$regexp} and $line =~ /$regexp/) {
