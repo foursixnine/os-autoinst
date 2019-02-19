@@ -14,7 +14,14 @@ under the hood.
 Simply configure it to connect to the local machine and install libvirt/virsh.
 
 #### Worker configuration
+The svirt backend requires Xvnc installed on the worker host:
+
+```
+zypper in xorg-x11-Xvnc
+```
+
 Example configuration for using QEMU under the hood (add to `$OPENQA_CONFIG/workers.ini`):
+
 ```
 [2]
 BACKEND=svirt
