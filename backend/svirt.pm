@@ -129,11 +129,12 @@ sub run_ssh_cmd {
     my ($self, $cmd, $hostname, $password) = @_;
     $hostname ||= get_required_var('VIRSH_HOSTNAME');
     $password ||= get_var('VIRSH_PASSWORD');
+    $username ||= get_var('VIRSH_USERNAME', 'root');
 
     $self->{ssh} = $self->new_ssh_connection(
         hostname => $hostname,
         password => $password,
-        username => 'root'
+        username => $username
     );
     return run_cmd($self->{ssh}, $cmd);
 }
