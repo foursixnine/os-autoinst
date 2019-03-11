@@ -718,7 +718,7 @@ sub set_var {
 
   check_var($variable, $value);
 
-Returns true if test variable C<$variable> is equal to C<$value> or returns C<undef>.
+Returns true if test variable C<$variable> is equal to C<$value> otherwise C<0>.
 
 =cut
 
