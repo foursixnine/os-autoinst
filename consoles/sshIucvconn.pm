@@ -35,20 +35,20 @@ sub connect_remote {
     my $ttyconn = $self->backend->new_ssh_connection(hostname => $hostname, password => $args->{password}, username => 'root');
 
     # start agetty to ensure that iucvconn is not killed
-    my $chan = $ttyconn->channel;
+    my $chan = $ttyconn->channel() || $ttyconn->die_with_error();
 
     $chan->blocking(0);
     $chan->pty(1);
 
-    $chan->exec("smart_agetty hvc0");
+    $chan->exec("smart_agetty hvc0") || $ttyconn->die_with_error("Unable to execute smart_agetty hvc0");
     # Save objects to prevent unexpected closings
     $self->{ttychan} = $chan;
     $self->{ttyconn} = $ttyconn;
 
     # ssh connection to SUT for iucvconn
-    my $serialchan = $self->backend->start_ssh_serial(hostname => $args->{hostname}, password => $args->{password}, username => 'root');
+    my ($ssh, $serialchan) = $self->backend->start_ssh_serial(hostname => $args->{hostname}, password => $args->{password}, username => 'root');
     # start iucvconn
-    $serialchan->exec("iucvconn $zvmguest lnxhvc0");
+    $serialchan->exec("iucvconn $zvmguest lnxhvc0") || $ssh->die_with_error('Unable to execute iucvconn command');
 }
 
 # to be called on reconnect

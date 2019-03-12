@@ -46,14 +46,14 @@ sub activate {
     if ($serial) {
 
         # ssh connection to SUT for iucvconn
-        my $serialchan = $self->backend->start_ssh_serial(
+        my ($ssh, $serialchan) = $self->backend->start_ssh_serial(
             hostname => $hostname,
             password => $password,
             username => 'root'
         );
 
         # start iucvconn
-        $serialchan->exec($serial);
+        $serialchan->exec($serial) || $ssh->die_with_error();
     }
 }
 
