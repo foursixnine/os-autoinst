@@ -39,6 +39,7 @@ use MIME::Base64 'encode_base64';
 use List::Util 'min';
 use List::MoreUtils 'uniq';
 use Scalar::Util 'looks_like_number';
+use testapi qw(get_var);
 
 # should be a singleton - and only useful in backend process
 our $backend;
