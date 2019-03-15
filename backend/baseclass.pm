@@ -1174,22 +1174,19 @@ sub new_ssh_connection {
 
     # Retry 5 times, in case of the guest is not running yet
     my $counter = 5;
-    while ($counter > 0) {
+    while ($counter--) {
         if ($ssh->connect($args{hostname})) {
-            if ($args{password}) {
+            # Attempt always key authentication
+            $ssh->auth_agent($args{username});
+            if (!$ssh->auth_ok && $args{password}) {
                 $ssh->auth(username => $args{username}, password => $args{password});
             }
-            else {
-                # this relies on agent to be set up correctly
-                $ssh->auth_agent($args{username});
-            }
             bmwqemu::diag "Connection to $args{username}\@$args{hostname} established" if $ssh->auth_ok;
-            sleep(10);
+            sleep(5);
         }
         else {
             bmwqemu::diag "Could not connect to $args{username}\@$args{hostname}, Retry";
             sleep(10);
-            $counter--;
             next;
         }
     }
