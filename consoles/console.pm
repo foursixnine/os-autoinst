@@ -34,6 +34,7 @@ use autodie ':all';
 
 require IPC::System::Simple;
 use Class::Accessor 'antlers';
+use testapi qw(get_var diag);
 
 has backend => (is => "rw");
 
@@ -66,14 +67,15 @@ sub screen {
 
 # helper function
 sub sshCommand {
-    my ($self, $username, $host, $gui) = @_;
+    my ($self, $username, $host, $gui, $privatekey) = @_;
 
-    my $sshopts = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $username\@$host";
+    my $sshopts = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+    $sshopts   .= " -o PubkeyAuthentication=no" unless $privatekey;
+    $sshopts   .= " -i $privatekey" if -e $privatekey;
+    $sshopts   .= "-X $sshopts" if $gui;
+    $sshopts   .= " $username\@$host";
 
-    if ($gui) {
-        $sshopts = "-X $sshopts";
-    }
-
+    diag 'Heavens! We are there!!! '. $sshopts . $privatekey;
     return "ssh $sshopts; read";
 }
 

@@ -1171,24 +1171,44 @@ sub new_ssh_connection {
     my ($self, %args) = @_;
     $args{username} ||= 'root';
 
-    my $ssh = Net::SSH2->new(debug => get_var('DEBUG_SSH_CONNECTION', 0));
-
+    my $ssh = Net::SSH2->new(
+        debug => get_var('DEBUG_SSH_CONNECTION', 0),
+    );
     bmwqemu::debug_call(pp(\%args));
+    my $privatekey_path = '/home/foursixnine/.openqa';
+    my $publickey_path  = '/home/foursixnine/.openqa.pub';
     # Retry 5 times, in case of the guest is not running yet
     my $counter = 5;
     while ($counter--) {
         if ($ssh->connect($args{hostname})) {
             # Attempt always key authentication
-            $ssh->auth_agent($args{username});
-            if (!$ssh->auth_ok && $args{password}) {
-                $ssh->auth(username => $args{username}, password => $args{password});
-            }
-            bmwqemu::diag "Connection to $args{username}\@$args{hostname} established" if $ssh->auth_ok;
-            sleep(5);
-        }
-        else {
-            bmwqemu::diag "Could not connect to $args{username}\@$args{hostname}, Retry";
+            eval {
+                $ssh->auth(
+                    username => $args{username},
+                    password => $args{password},
+                    privatekey => $privatekey_path,
+                    publickey => $publickey_path,
+                    passphrase => undef
+                );
+            };
+
+            carp "It seems that there's a problem with public key auth" . $@ if $@;
+
+            $ssh->auth(
+                username => $args{username},
+                password => $args{password},
+            ) unless $ssh->auth_ok;
+
+            bmwqemu::diag "Could not connect to $args{username}\@$args{hostname}: error - " . $ssh->error unless $ssh->auth_ok;
+            bmwqemu::diag "Connection stablished $args{username}\@$args{hostname} " if $ssh->auth_ok;
+
+            last if $ssh->auth_ok;
             sleep(10);
+        }
+
+        else {
+            bmwqemu::diag "Could not connect to $args{username}\@$args{hostname}, Retry ($counter)";
+            sleep(20);
             next;
         }
     }

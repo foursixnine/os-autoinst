@@ -30,6 +30,7 @@ use File::Temp 'tempfile';
 use File::Basename;
 use Class::Accessor 'antlers';
 use Data::Dump qw(pp);
+use Carp qw(croak);
 
 has instance   => (is => "rw", isa => "Num");
 has name       => (is => "rw", isa => "Str");
