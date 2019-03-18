@@ -67,10 +67,13 @@ sub activate {
 sub _init_ssh {
     my ($self, $domain, $args) = @_;
     bmwqemu::debug_call pp($domain, \$args);
+    $args->{hostname} ||= get_var('VIRSH_HOSTNAME');
+    $args->{username} ||= get_var('VIRSH_USERNAME');
+    $args->{password} ||= get_var('VIRSH_PASSWORD');
     my %connection_settings;
     if ($domain eq 'ssh') {
         %connection_settings = (
-            hostname => ($args->{hostname} || die('we need a hostname to ssh to')),
+            hostname => $args->{hostname}, #|| croak ('we need a hostname to ssh to')),
             username => $args->{username},
             password => $args->{password},
         );
