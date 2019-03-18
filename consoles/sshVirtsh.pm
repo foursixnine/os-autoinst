@@ -66,7 +66,7 @@ sub activate {
 # initializes the SSH console(s), $domain is used to distinguish between the regular SSH console and the one to the VMware server
 sub _init_ssh {
     my ($self, $domain, $args) = @_;
-    bmwqemu::diag '_init_ssh caled, arguments are '.pp($domain, $args);
+    bmwqemu::debug_call pp($domain, \$args);
     my %connection_settings;
     if ($domain eq 'ssh') {
         %connection_settings = (

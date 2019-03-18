@@ -24,7 +24,7 @@ use Time::HiRes qw(sleep gettimeofday);
 use IO::Socket;
 use Fcntl ':flock';
 use POSIX;
-use Carp;
+use Carp qw(cluck croak confess);
 use Mojo::JSON;    # booleans
 use Cpanel::JSON::XS ();
 use File::Path 'remove_tree';
@@ -262,6 +262,14 @@ sub update_line_number {
     }
     return;
 }
+
+sub debug_call {
+    my $grandparent = (caller(2))[3];
+    my $parent = (caller(1))[3];
+
+    diag 'DEBUG '. $parent .' was caled from "'. $grandparent .'", arguments are '. shift;
+    #    cluck('Trying to get the stacktrace');
+};
 
 # pretty print like Data::Dumper but without the "VAR1 = " prefix
 sub pp {

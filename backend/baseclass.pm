@@ -40,6 +40,7 @@ use List::Util 'min';
 use List::MoreUtils 'uniq';
 use Scalar::Util 'looks_like_number';
 use testapi qw(get_var);
+use Data::Dump qw(pp);
 
 # should be a singleton - and only useful in backend process
 our $backend;
@@ -1172,6 +1173,7 @@ sub new_ssh_connection {
 
     my $ssh = Net::SSH2->new(debug => get_var('DEBUG_SSH_CONNECTION', 0));
 
+    bmwqemu::debug_call(pp(\%args));
     # Retry 5 times, in case of the guest is not running yet
     my $counter = 5;
     while ($counter--) {
