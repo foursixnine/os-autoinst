@@ -94,15 +94,17 @@ test -e tools/tidy || exit 1
 
 cleanup
 
+PERLTIDY="perltidy --pro=.../.perltidyrc --no-valign"
+
 if [[ -n "$filename" ]]; then
    if [[ -f "$filename" ]]; then
-       perltidy --pro=.../.perltidyrc "$filename"
+      $PERLTIDY "$filename"
    else
        echo "\"$filename\" is not a valid file, please provide only one file"
        exit 22
    fi
 else
-    find-files | xargs perltidy --pro=.../.perltidyrc
+    find-files | xargs $PERLTIDY
 fi
 
 find . -name "*.tdy" | while read -r file
